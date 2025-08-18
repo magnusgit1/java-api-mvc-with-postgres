@@ -1,6 +1,9 @@
 package com.booleanuk.api.employee;
 
+import com.booleanuk.api.department.Department;
 import org.postgresql.ds.PGSimpleDataSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.sql.DataSource;
 import java.io.FileInputStream;
@@ -72,8 +75,8 @@ public class EmployeeRepository {
                     results.getInt("id"),
                     results.getString("name"),
                     results.getString("jobName"),
-                    results.getString("salaryGrade"),
-                    results.getString("department"));
+                    results.getInt("salaryGrade"),
+                    results.getInt("department"));
             everyone.add(theEmployee);
         }
         return everyone;
@@ -89,8 +92,8 @@ public class EmployeeRepository {
                     results.getInt("id"),
                     results.getString("name"),
                     results.getString("jobName"),
-                    results.getString("salaryGrade"),
-                    results.getString("department"));
+                    results.getInt("salaryGrade"),
+                    results.getInt("department"));
         }
         return employee;
     }
@@ -100,8 +103,16 @@ public class EmployeeRepository {
         PreparedStatement statement = this.connection.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, employee.getName());
         statement.setString(2, employee.getJobName());
-        statement.setString(3, employee.getSalaryGrade());
-        statement.setString(4, employee.getDepartment());
+        statement.setInt(3, employee.getSalaryGrade());
+        statement.setInt(4, employee.getDepartment());
+
+
+        for (Employee employeex : getAll()){
+            if (employeex.getName().equals(employee.getName())){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not create a new employee, please check all required fields are correct");
+            }
+        }
+
         int rowsAffected = statement.executeUpdate();
         int newId = 0;
         if (rowsAffected > 0){
@@ -130,9 +141,15 @@ public class EmployeeRepository {
         PreparedStatement statement = this.connection.prepareStatement(SQL);
         statement.setString(1, employee.getName());
         statement.setString(2, employee.getJobName());
-        statement.setString(3, employee.getSalaryGrade());
-        statement.setString(4, employee.getDepartment());
+        statement.setInt(3, employee.getSalaryGrade());
+        statement.setInt(4, employee.getDepartment());
         statement.setInt(5, id);
+
+        for (Employee employeex : getAll()){
+            if (employeex.getName().equals(employee.getName())){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not update a new employee, please check all required fields are correct");
+            }
+        }
         int rowsAffected = statement.executeUpdate();
         Employee updatedEmployee = null;
         if (rowsAffected > 0) {
